@@ -1,18 +1,20 @@
-const path = require("path");
-const { GraphQLObjectType, GraphQLList } = require("graphql");
-const { pokemonsType } = require(path.resolve("schema/types"));
-const PokemonRootQuery = new GraphQLObjectType({
-  name: "RootQueryType",
-  type: "Query",
-  fields: {
-    pokemons: {
-      type: new GraphQLList(pokemonsType),
-      resolve() {
-        const data = require(path.resolve("data/pokemons.json"));
-        return data;
+import { gql } from '@apollo/client';
+
+const GET_POKEMONS = gql`
+  query pokemons($limit: Int, $offset: Int) {
+    pokemons(limit: $limit, offset: $offset) {
+      count
+      next
+      previous
+      status
+      message
+      results {
+        url
+        name
+        image
       }
     }
   }
-});
+`;
 
-export default PokemonRootQuery;
+export { GET_POKEMONS }

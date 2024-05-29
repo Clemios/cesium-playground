@@ -1,6 +1,8 @@
 import { Route, Routes } from "react-router-dom";
-import Layout from "./Layout";
+import Layout from "./components/Layout";
 import Pokemons from "./containers/Pokemons/Pokemons";
+import Home from "./containers/Home/Home";
+import Cesium from "./containers/Cesium/Cesium";
 
 export default function App() {
   return (
@@ -10,9 +12,9 @@ export default function App() {
             parent route elements. See the note about <Outlet> below. */}
       <Routes>
         <Route path="/" element={<Layout />}>
-          {/* <Route index element={<Home />} /> */}
+          <Route index element={<Home />} />
+          <Route path="cesium" element={<Cesium />} />
           <Route path="pokemons" element={<Pokemons />} />
-          {/* <Route path="dashboard" element={<Dashboard />} /> */}
 
           {/* Using path="*"" means "match anything", so this route
                 acts like a catch-all for URLs that we don't have explicit
