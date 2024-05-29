@@ -1,46 +1,128 @@
-# Getting Started with Create React App
+# cesium-webpack-example
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A minimal recommended setup for an applications using [Cesium](https://cesium.com) with [Webpack 5](https://webpack.js.org/concepts/).
 
-## Available Scripts
+## Running this application
 
-In the project directory, you can run:
+```sh
+npm install
+npm start
+# for the built version
+npm run build
+npm run start:built
+```
 
-### `npm start`
+Navigate to `localhost:8080`.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### Available scripts
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- `npm start` - Runs a webpack build with `webpack.config.js` and starts a development server at `localhost:8080`
+- `npm run build` - Runs a webpack build with `webpack.config.js`
+- `npm run start:built` - Start a small static server using `http-server` to demonstrate hosting the built version
 
-### `npm test`
+## Requiring Cesium in your application
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+We recommend [importing named exports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import) from the Cesium ES module, via the `import` keyword. This allows webpack to [tree shake](https://webpack.js.org/guides/tree-shaking/) your application automatically.
 
-### `npm run build`
+### Import named modules from Cesium
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```js
+import { Color } from "cesium";
+var c = Color.fromRandom();
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Import Cesium static asset files
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```js
+import "cesium/Build/Cesium/Widgets/widgets.css";
+```
 
-### `npm run eject`
+## Cesium sub-packages
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+CesiumJS requires a few static files to be hosted on your server, like web workers and SVG icons. This example is set up to copy these directories already if you install the whole `cesium` package.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```js
+new CopyWebpackPlugin({
+  patterns: [
+    { from: path.join(cesiumSource, "Workers"), to: `${cesiumBaseUrl}/Workers`, },
+    { from: path.join(cesiumSource, "ThirdParty"), to: `${cesiumBaseUrl}/ThirdParty`, },
+    { from: path.join(cesiumSource, "Assets"), to: `${cesiumBaseUrl}/Assets`, },
+    { from: path.join(cesiumSource, "Widgets"), to: `${cesiumBaseUrl}/Widgets`, },
+  ],
+}),
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+However if you only install `@cesium/engine` then you should change the paths in `webpack.config.js` to the ones below:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```js
+new CopyWebpackPlugin({
+  patterns: [
+    { from: 'node_modules/@cesium/engine/Build/Workers', to: `${cesiumBaseUrl}/Workers` },
+    { from: 'node_modules/@cesium/engine/Build/ThirdParty', to: `${cesiumBaseUrl}/ThirdParty` },
+    { from: 'node_modules/@cesium/engine/Source/Assets', to: `${cesiumBaseUrl}/Assets` },
+  ],
+}),
+```
 
-## Learn More
+Additionally you will have to import a different widgets css file in `src/index.js`.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```js
+// Change this import
+import "cesium/Build/Cesium/Widgets/widgets.css";
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+// To this one from the cesium/engine package
+import "@cesium/engine/Source/Widget/CesiumWidget.css";
+```
+
+## CesiumJS before version `1.114`
+
+If you are using a version of CesiumJS before `1.114` you will need to modify the config to tell it to ignore some external node dependencies. Modify the `resolve` section to include the below:
+
+```js
+  resolve: {
+    fallback: { https: false, zlib: false, http: false, url: false },
+    mainFiles: ["index", "Cesium"],
+  },
+```
+
+See cesium PR [#11773](https://github.com/CesiumGS/cesium/pull/11773) for more information
+
+## Removing pragmas
+
+To remove pragmas such as a traditional Cesium release build, use the [`strip-pragma-loader`](https://www.npmjs.com/package/strip-pragma-loader).
+
+Install the plugin with npm,
+
+```sh
+npm install strip-pragma-loader --save-dev
+```
+
+and include the loader in `module.rules` with `debug` set to `false`.
+
+```js
+rules: [
+  {
+    test: /\.js$/,
+    enforce: "pre",
+    include: path.resolve(__dirname, cesiumSource),
+    use: [
+      {
+        loader: "strip-pragma-loader",
+        options: {
+          pragmas: {
+            debug: false,
+          },
+        },
+      },
+    ],
+  },
+];
+```
+
+## Contributions
+
+Pull requests are appreciated. Please use the same [Contributor License Agreement (CLA)](https://github.com/CesiumGS/cesium/blob/master/CONTRIBUTING.md) used for [Cesium](https://cesium.com/).
+
+---
+
+Developed by the Cesium team.
