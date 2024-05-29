@@ -1,26 +1,25 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Route, Routes } from "react-router-dom";
+import Layout from "./Layout";
+import Pokemons from "./containers/Pokemons/Pokemons";
 
-function App() {
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      {/* Routes nest inside one another. Nested route paths build upon
+            parent route paths, and nested route elements render inside
+            parent route elements. See the note about <Outlet> below. */}
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          {/* <Route index element={<Home />} /> */}
+          <Route path="pokemons" element={<Pokemons />} />
+          {/* <Route path="dashboard" element={<Dashboard />} /> */}
+
+          {/* Using path="*"" means "match anything", so this route
+                acts like a catch-all for URLs that we don't have explicit
+                routes for. */}
+          {/* <Route path="*" element={<NoMatch />} /> */}
+        </Route>
+      </Routes>
     </div>
   );
 }
-
-export default App;
